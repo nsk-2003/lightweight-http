@@ -16,4 +16,4 @@ delete a source file.
 
 | Source File | Purpose |
 |---|---|
-| _(empty — populated as the implementation is generated)_ | |
+| `doc.go` | Module-level package documentation; provides a compilable root package so toolchain commands (`go vet ./...`, `go test ./...`) have a target even before implementation files exist. |
