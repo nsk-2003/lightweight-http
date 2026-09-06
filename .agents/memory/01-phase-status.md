@@ -1,3 +1,19 @@
+## 2026-09-07 — Phase 6 complete
+
+Phase 6 (Dependency Management) is complete and all DoD criteria verified.
+Key decisions:
+- `pkg/di` at layer 2 (core). Imports only stdlib: `context`, `sync`, `log/slog`, `fmt`, `strings`. Does NOT import `pkg/errors` (DI errors are not HTTP errors).
+- Key type: `string`. Duplicate registration → error (no silent last-wins).
+- `Constructor func(r Resolver) (any, error)` — Resolver interface lets constructors resolve dependencies without holding the Container.
+- Singleton lifecycle: `sync.Once` + cached `value`/`err`. Constructor called at most once even under 100-goroutine concurrent resolution. Failed constructor caches the error permanently.
+- Scoped lifecycle: per-key `*scopedEntry` (with its own `sync.Once`) stored in `sync.Map`. `LoadOrStore` races safely; prevents scope-wide lock during construction; prevents deadlock when a scoped service's constructor resolves another scoped service.
+- Cycle detection: `[]string` path threaded through `internalResolver.Resolve` → `container.resolve`. Cycle yields `"A -> B -> C -> A"` via `strings.Join`.
+- Disposal: `Scope` maintains `[]disposableEntry` appended in construction order. `Dispose()` snapshots under `dispMu` then iterates in reverse. Errors logged via `slog.Default().Error`, loop continues.
+- Context integration (ADR-005): `scopeKey{}` unexported type; `ContextWithScope` + `ScopeFromContext`.
+- `Scope.Resolve(key)` delegates to `container.resolve(s, key, nil)`, so singletons are served from the parent container.
+- Scoped service resolved from root → descriptive error naming the key.
+Pointers: `pkg/di/{container,container_test}.go`, `test/plans/phase6.md`.
+
 ## 2026-09-07 — Phase 5 complete
 
 Phase 5 (Centralized Error Handling) is complete and all DoD criteria verified.

@@ -42,7 +42,9 @@ flowchart TB
   middlewarePkg --> errorsPkg
   observabilityPkg --> errorsPkg
   routerPkg --> errorsPkg
-  diPkg --> errorsPkg
+  diPkg --> ctx
+  diPkg --> syncp
+  diPkg --> slog
   routerPkg --> nethttp
   routerPkg --> neturl
   routerPkg --> ctx
@@ -52,11 +54,13 @@ flowchart TB
   middlewarePkg --> slog
 ```
 
-> **Phase 5 note:** `pkg/middleware` now imports `pkg/errors` (Layer 3 → Layer 1) to
-> write the standard JSON error envelope from `Recovery`. `pkg/errors` now imports
-> `runtime/debug` for optional stack capture in debug mode. `pkg/middleware` also imports
-> `runtime/debug` for the panic goroutine stack. `pkg/di`, `pkg/observability`, `cmd/`,
-> and `examples/` remain stubs until their respective phases.
+> **Phase 5 note:** `pkg/middleware` imports `pkg/errors` (Layer 3 → Layer 1) for the
+> JSON error envelope. `pkg/errors` imports `runtime/debug` for optional stack capture.
+>
+> **Phase 6 note:** `pkg/di` is now implemented. It imports only standard library packages
+> (`context`, `sync`, `log/slog`, `fmt`, `strings`); it does NOT import `pkg/errors`
+> because its own error types are DI-specific (not HTTP errors). `pkg/observability`,
+> `cmd/`, and `examples/` remain stubs until their respective phases.
 
 ## Layer Rules
 

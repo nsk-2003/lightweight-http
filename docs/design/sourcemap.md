@@ -31,3 +31,5 @@ delete a source file.
 | `pkg/router/response_test.go` | Black-box tests for the response writer and helpers covering status tracking, byte counting, Content-Type, and content negotiation. |
 | `test/testdata/valid.json` | Shared JSON fixture with a valid object used by request-parsing tests. |
 | `test/testdata/malformed.json` | Shared JSON fixture with intentionally malformed content used by request-parsing tests. |
+| `pkg/di/container.go` | DI container: registration, singleton/scoped lifecycle resolution, circular-dependency detection, request-scope disposal, and context integration (ADR-005, ADR-010). |
+| `pkg/di/container_test.go` | Black-box tests for the di package covering all Phase 6 behavioral requirements: registration, singletons, scopes, cycles, constructor errors, disposal ordering, and context helpers. |
