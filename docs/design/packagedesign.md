@@ -47,14 +47,16 @@ flowchart TB
   routerPkg --> neturl
   routerPkg --> ctx
   routerPkg --> syncp
+  routerPkg --> slog
   middlewarePkg --> nethttp
   middlewarePkg --> slog
 ```
 
-> **Phase 3 note:** `pkg/middleware` is implemented and depends on `net/http` and
-> `log/slog` from the standard library. It does not yet import `pkg/router` or
-> `pkg/errors` (those edges are future-phase). `pkg/errors` and all other
-> packages above layer 2 remain stubs until their respective phases are implemented.
+> **Phase 4 note:** `pkg/errors` is now implemented (Layer 1). `pkg/router` imports
+> it for typed HTTP errors from request parsing; `pkg/router` also now imports `log/slog`
+> for the `ResponseWriter` double-write warning. `pkg/middleware` does not yet import
+> `pkg/errors` (future phase). `pkg/di`, `pkg/observability`, `cmd/`, and `examples/`
+> remain stubs until their respective phases.
 
 ## Layer Rules
 

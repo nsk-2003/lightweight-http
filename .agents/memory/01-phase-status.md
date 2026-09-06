@@ -1,3 +1,18 @@
+## 2026-09-07 — Phase 4 complete
+
+Phase 4 (Request and Response Handling) is complete and all DoD criteria verified.
+Key decisions:
+- `pkg/errors` bootstrapped with `HTTPError` type (Code + public Message + optional wrapped cause), `New`, `Wrap`, `CodeOf`, `MessageOf`. Phase 5 adds JSON wire rendering.
+- `BindJSON` uses `http.MaxBytesReader` + `json.Decoder.DisallowUnknownFields` (configurable). Body limit configurable via `WithBodyLimit`; default 1 MiB. Content-Type enforced (absent = accepted, wrong = 415). Oversized → 413. Malformed → 400 without echoing raw body.
+- `BindForm`/`FormParam`/`FormParamInt` handle `application/x-www-form-urlencoded` with same body limit + content-type checks.
+- `QueryParam`/`QueryParamInt` use `url.Values.Has` (Go 1.17+) so `?k=` (empty value) is accepted; missing key → 400 naming the param.
+- `PathParam` reads from context via existing `Params(ctx)`; absent param → 400.
+- `ResponseWriter` in `pkg/router` tracks status (0 until first write) and byte count for Phase 7. Second `WriteHeader` call logs Warn and no-ops.
+- `JSON`, `Text`, `NoContent`, `Respond` helpers. `Respond` parses comma-separated Accept; */* and absent → JSON default; unsupported → 406 HTTPError (no body written).
+- `pkg/router` now imports `pkg/errors` and `log/slog`. Package design diagram updated.
+- `noopRW` is an unexported struct implementing `http.ResponseWriter` used as the required arg to `http.MaxBytesReader` when no real ResponseWriter is in scope.
+Pointers: `pkg/errors/{errors,errors_test}.go`, `pkg/router/{request,request_test,response,response_test}.go`, `test/plans/phase4.md`.
+
 ## 2026-09-07 — Phase 3 complete
 
 Phase 3 (Middleware System) is complete and all DoD criteria verified.
