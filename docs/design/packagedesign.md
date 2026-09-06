@@ -31,12 +31,12 @@ flowchart TB
     slog[log/slog]
   end
 
-  cmdMain --> routerPkg
-  cmdMain --> middlewarePkg
-  cmdMain --> observabilityPkg
+  cmdMain --> examplesPkg
   cmdMain --> diPkg
+  cmdMain --> observabilityPkg
   examplesPkg --> routerPkg
   examplesPkg --> middlewarePkg
+  examplesPkg --> observabilityPkg
   examplesPkg --> diPkg
   middlewarePkg --> routerPkg
   middlewarePkg --> errorsPkg
@@ -66,7 +66,12 @@ flowchart TB
 > for request-ID context helpers and `pkg/router` (Layer 2) for `RoutePatternHolder` — a
 > mutable pointer the router writes the matched pattern into, enabling metrics keyed by route
 > pattern rather than concrete path (ADR-012). Layer 3 → Layer 2 is an allowed dependency.
-> `cmd/` and `examples/` remain stubs until Phase 8.
+>
+> **Phase 8 note:** `examples/items` (Layer 4) exports `NewHandler` and is imported by
+> `cmd/server` (Layer 4) as the composition root. Both are Application-layer packages;
+> `cmd/server` acts as the wiring entry point and may import from `examples/` in this role.
+> `cmd/server` also imports `pkg/di` and `pkg/observability` directly for container
+> construction and recorder wiring.
 
 ## Layer Rules
 

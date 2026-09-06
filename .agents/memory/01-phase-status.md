@@ -1,3 +1,18 @@
+## 2026-09-07 — Phase 8 complete
+
+Phase 8 (Validation and Example) is the final phase. All DoD criteria verified.
+Key decisions:
+- `examples/items` (package `items`, Layer 4): exports `Store`, `Item`, `NewStore`, `NewHandler`, `StoreKey`. `NewHandler` accepts `*di.Container`, `*observability.Recorder`, `*slog.Logger`, `debug bool`; resolves store via `ctr.Resolve(StoreKey)`. Wires full chain: RequestID → Logger → Metrics → Recovery → Router.
+- `cmd/server/main.go` (package `main`, Layer 4): imports `examples/items` (composition-root pattern). Reads config from env vars (LWHTTP_PORT, LWHTTP_LOG_LEVEL, LWHTTP_DEBUG). Sets all four http.Server timeouts. Graceful shutdown via `signal.NotifyContext` + `srv.Shutdown` with 10s bounded timeout.
+- Architecture: `cmd/server` imports `examples/items` — both Layer 4 (Application). Treated as composition-root importing application package. Package diagram updated with note.
+- Test: 12 end-to-end tests in `examples/items/items_test.go` (package `items_test`). Uses `httptest.NewServer`. Covers all 7 routes + request ID header + route group path param.
+- `items.StoreKey` exported constant avoids magic strings between items.go, items_test.go, and cmd/server/main.go.
+- `mustRegister` helper panics on route registration error (startup-time programming mistake).
+- `Store.List` returns `make([]*Item, 0, ...)` so JSON encoder writes `[]` not `null` on empty.
+- README.md fully replaced with framework documentation per spec (7 sections, verified curl output).
+- Coverage: examples/items 89.4%.
+Pointers: `examples/items/{items,items_test}.go`, `cmd/server/main.go`, `test/plans/phase8.md`, `README.md`, `docs/design/{sourcemap,packagedesign}.md`.
+
 ## 2026-09-07 — Phase 7 complete
 
 Phase 7 (Observability) is complete and all DoD criteria verified.

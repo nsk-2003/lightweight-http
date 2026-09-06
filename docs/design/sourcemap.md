@@ -35,3 +35,7 @@ delete a source file.
 | `pkg/di/container_test.go` | Black-box tests for the di package covering all Phase 6 behavioral requirements: registration, singletons, scopes, cycles, constructor errors, disposal ordering, and context helpers. |
 | `pkg/observability/observability.go` | RequestID, Logger, and Metrics middleware plus the in-process Recorder — the full Phase 7 observability stack exposed as composable middleware functions (ADR-011, ADR-012). |
 | `pkg/observability/observability_test.go` | Black-box tests for the observability package covering all Phase 7 requirements: request ID generation/adoption/validation, standard log fields, Authorization redaction, metrics counting/latency/status, route-pattern aggregation, panic resilience, and race-detector cleanliness. |
+| `examples/items/items.go` | In-memory items API example — in-memory Store, Item type, and NewHandler wiring the full middleware chain and route group; exercises every framework package (Phase 8). |
+| `examples/items/items_test.go` | End-to-end black-box tests for the items example, driving all seven routes through httptest.NewServer to verify the full middleware and routing stack (Phase 8). |
+| `cmd/server/main.go` | Production server entry point — constructs the DI container, registers the store singleton, wires middleware and handler, starts http.Server with all timeouts, and shuts down gracefully on SIGINT/SIGTERM (Phase 8). |
+| `test/plans/phase8.md` | Test plan for Phase 8 covering the end-to-end route table, server smoke test, and key design decisions. |
