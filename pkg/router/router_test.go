@@ -1,9 +1,11 @@
 // Purpose: Black-box tests for the router package covering method dispatch, path
-// parameters, query values, route groups, error handling, and the behavioral
-// requirement table from docs/specifications/phase2.md.
+// parameters, query values, route groups, error handling, the behavioral
+// requirement table from docs/specifications/phase2.md, and Phase 5 JSON
+// envelope requirements for 404 and 405 responses.
 package router_test
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -390,6 +392,59 @@ func TestRouter_RootPath(t *testing.T) {
 
 	if !called {
 		t.Error("root handler not called for GET /")
+	}
+}
+
+// ─── Phase 5 JSON envelope for 404 and 405 ───────────────────────────────────
+
+// TestRouter_NotFound_IsJSONEnvelope asserts that a 404 response from the router
+// uses the standard error envelope (Phase 5 acceptance criterion).
+func TestRouter_NotFound_IsJSONEnvelope(t *testing.T) {
+	r := router.New()
+	_ = r.GET("/exists", hit(new(bool)))
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/missing", nil))
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("want 404, got %d", w.Code)
+	}
+	if ct := w.Header().Get("Content-Type"); !strings.HasPrefix(ct, "application/json") {
+		t.Fatalf("404 response must be application/json, got %q", ct)
+	}
+	var env map[string]json.RawMessage
+	if err := json.Unmarshal(w.Body.Bytes(), &env); err != nil {
+		t.Fatalf("404 body is not valid JSON: %v\nbody: %s", err, w.Body.String())
+	}
+	if _, ok := env["error"]; !ok {
+		t.Error("404 response must have top-level 'error' key in JSON body")
+	}
+}
+
+// TestRouter_MethodNotAllowed_IsJSONEnvelope asserts that a 405 response uses
+// the standard error envelope and still carries the Allow header (Phase 5).
+func TestRouter_MethodNotAllowed_IsJSONEnvelope(t *testing.T) {
+	r := router.New()
+	_ = r.GET("/resource", hit(new(bool)))
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest(http.MethodDelete, "/resource", nil))
+
+	if w.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("want 405, got %d", w.Code)
+	}
+	if ct := w.Header().Get("Content-Type"); !strings.HasPrefix(ct, "application/json") {
+		t.Fatalf("405 response must be application/json, got %q", ct)
+	}
+	if allow := w.Header().Get("Allow"); !strings.Contains(allow, "GET") {
+		t.Fatalf("405 response must still include Allow header, got %q", allow)
+	}
+	var env map[string]json.RawMessage
+	if err := json.Unmarshal(w.Body.Bytes(), &env); err != nil {
+		t.Fatalf("405 body is not valid JSON: %v\nbody: %s", err, w.Body.String())
+	}
+	if _, ok := env["error"]; !ok {
+		t.Error("405 response must have top-level 'error' key in JSON body")
 	}
 }
 

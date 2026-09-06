@@ -1,10 +1,12 @@
-// Purpose: Black-box tests for the middleware package covering all Phase 3
-// behavioral requirements: execution order, short-circuit, context propagation,
-// header forwarding, panic recovery, ErrAbortHandler re-panic, and concurrency.
+// Purpose: Black-box tests for the middleware package covering all Phase 3 and
+// Phase 5 behavioral requirements: execution order, short-circuit, context
+// propagation, header forwarding, panic recovery with JSON envelope, and
+// ErrAbortHandler re-panic.
 package middleware_test
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -255,7 +257,7 @@ func TestRecovery_PanicConvertsTo500(t *testing.T) {
 		panic("something went wrong")
 	})
 
-	h := middleware.Recovery(log)(panicHandler)
+	h := middleware.Recovery(log, false)(panicHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
@@ -278,7 +280,7 @@ func TestRecovery_ErrAbortHandler_Repanics(t *testing.T) {
 		panic(http.ErrAbortHandler)
 	})
 
-	h := middleware.Recovery(log)(panicHandler)
+	h := middleware.Recovery(log, false)(panicHandler)
 
 	var caught interface{}
 	func() {
@@ -305,7 +307,7 @@ func TestRecovery_AlreadyWroteHeader_LogsAndDoesNotWrite500(t *testing.T) {
 		panic("panic after header written")
 	})
 
-	h := middleware.Recovery(log)(panicHandler)
+	h := middleware.Recovery(log, false)(panicHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
@@ -317,5 +319,59 @@ func TestRecovery_AlreadyWroteHeader_LogsAndDoesNotWrite500(t *testing.T) {
 	}
 	if !strings.Contains(buf.String(), "panic recovered") {
 		t.Fatalf("expected 'panic recovered' in log output; got:\n%s", buf.String())
+	}
+}
+
+// TestRecovery_PanicBody_IsJSONEnvelope asserts that the body written after a
+// panic is the standard JSON error envelope (Phase 5 requirement).
+func TestRecovery_PanicBody_IsJSONEnvelope(t *testing.T) {
+	log := newTestLogger(io.Discard)
+
+	h := middleware.Recovery(log, false)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic("boom")
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("want 500, got %d", rec.Code)
+	}
+	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "application/json") {
+		t.Fatalf("want application/json Content-Type, got %q", ct)
+	}
+
+	var env map[string]json.RawMessage
+	if err := json.Unmarshal(rec.Body.Bytes(), &env); err != nil {
+		t.Fatalf("panic response body is not valid JSON: %v\nbody: %s", err, rec.Body.String())
+	}
+	if _, ok := env["error"]; !ok {
+		t.Error("panic response body must have top-level 'error' key")
+	}
+}
+
+// TestRecovery_PanicBody_NoGoroutineOrRepoPath asserts the security invariant
+// that no stack trace fragments appear in the client-facing panic response body.
+func TestRecovery_PanicBody_NoGoroutineOrRepoPath(t *testing.T) {
+	log := newTestLogger(io.Discard)
+
+	h := middleware.Recovery(log, false)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic("secret internal details")
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	if strings.Contains(body, "goroutine") {
+		t.Errorf("panic response body must not contain 'goroutine'; got: %s", body)
+	}
+	if strings.Contains(body, "github.com/example/lightweight-http") {
+		t.Errorf("panic response body must not contain the repo path; got: %s", body)
+	}
+	if strings.Contains(body, "secret internal details") {
+		t.Errorf("panic response body must not expose the panic value; got: %s", body)
 	}
 }

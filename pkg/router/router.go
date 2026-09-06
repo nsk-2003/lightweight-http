@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	httperrors "github.com/example/lightweight-http/pkg/errors"
 )
 
 // Router matches incoming requests to registered handlers. The zero value is
@@ -85,12 +87,13 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		handler(w, req.WithContext(ctx))
 
 	case len(allowed) > 0:
-		// Path exists but method not registered.
+		// Path exists but method not registered — set Allow before writing body.
 		w.Header().Set("Allow", strings.Join(allowed, ", "))
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		httperrors.WriteError(w, req,
+			httperrors.NewCoded(http.StatusMethodNotAllowed, "method_not_allowed", "Method Not Allowed"))
 
 	default:
-		http.NotFound(w, req)
+		httperrors.WriteError(w, req, httperrors.ErrNotFound)
 	}
 }
 

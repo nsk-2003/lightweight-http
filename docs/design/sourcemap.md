@@ -23,8 +23,8 @@ delete a source file.
 | `pkg/router/router_test.go` | Black-box tests for the router package covering all phase-2 behavioral requirements and a routing-table benchmark. |
 | `pkg/middleware/middleware.go` | `Middleware` type, `Chain` composer, and `Recovery` built-in middleware with panic recovery and response-committed detection. |
 | `pkg/middleware/middleware_test.go` | Black-box tests for the middleware package covering all phase-3 behavioral requirements: execution order, short-circuit, context propagation, panic recovery, and concurrency. |
-| `pkg/errors/errors.go` | `HTTPError` type pairing an HTTP status code with a safe public message; `New`, `Wrap`, `CodeOf`, and `MessageOf` helpers used by all layers. |
-| `pkg/errors/errors_test.go` | Black-box tests for the errors package covering constructor, unwrap, CodeOf, and MessageOf behavior. |
+| `pkg/errors/errors.go` | `HTTPError` type, sentinel errors, JSON envelope, central `Handler`/`ServeError`, request-ID context helpers, and `WriteError` convenience wrapper (Phase 5). |
+| `pkg/errors/errors_test.go` | Black-box tests for the errors package covering Phase 4 and Phase 5 requirements: constructor, unwrap, sentinels, errors.Is/As through wrapping, JSON envelope shape, production-mode safety, and request ID. |
 | `pkg/router/request.go` | Typed request parsing helpers — `BindJSON`, `BindForm`, `FormParam`, `FormParamInt`, `QueryParam`, `QueryParamInt`, `PathParam` — with body limits and Content-Type validation. |
 | `pkg/router/request_test.go` | Black-box tests for request parsing covering all phase-4 behavioral requirements: JSON, form, query, and path sources, error codes, and body size limits. |
 | `pkg/router/response.go` | `ResponseWriter` wrapper tracking status and bytes for Phase 7 metrics; `JSON`, `Text`, `NoContent`, and `Respond` (content-negotiated) response helpers. |

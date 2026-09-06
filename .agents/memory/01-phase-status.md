@@ -1,3 +1,19 @@
+## 2026-09-07 — Phase 5 complete
+
+Phase 5 (Centralized Error Handling) is complete and all DoD criteria verified.
+Key decisions:
+- `HTTPError` struct extended with `ErrCode string` (machine-readable) and `details []Detail` (unexported, accessed via `WithDetails`). `Code int` (HTTP status) retained from Phase 4 for backward compatibility.
+- Nine sentinel vars: `ErrBadRequest…ErrInternal`. Each created with `NewCoded(status, errCode, message)`. Sentinels are pointers; `errors.Is` through two `fmt.Errorf` wraps works because `fmt.Errorf("%w")` chains `Unwrap()`.
+- `WithDetails(details ...Detail)` copies the receiver (struct literal copy) so sentinels cannot be mutated.
+- JSON wire format: `{"error":{"code","message","status","request_id","details"}}`. `details` and `request_id` are `omitempty`. Top-level has exactly one key.
+- `Handler{log, debug bool}` + `ServeError(w, r, err)` — single translation point. Cause is logged but never in response body. In debug mode, `runtime/debug.Stack()` is logged too.
+- `WriteError(w, r, err)` convenience wrapper using `slog.Default()` + production mode; used by router for 404/405.
+- `requestIDKey{}` (unexported) + `WithRequestID` + `RequestIDFromContext` in `pkg/errors` (ADR-005).
+- `pkg/middleware` now imports `pkg/errors`. `Recovery` signature changed to `Recovery(log, debug bool)`. Uses `ServeError` for panic responses; logs panic + optional stack in Recovery defer, passes bare 500 to ServeError (no double-logging).
+- Router 404 → `WriteError(w, req, ErrNotFound)`. Router 405 → `WriteError(w, req, NewCoded(405, "method_not_allowed", …))` after setting Allow header.
+- Security invariant: tests assert client body never contains "goroutine" or "github.com/example/lightweight-http", in both production and debug modes.
+Pointers: `pkg/errors/{errors,errors_test}.go`, `pkg/middleware/{middleware,middleware_test}.go`, `pkg/router/{router,router_test}.go`, `test/plans/phase5.md`.
+
 ## 2026-09-07 — Phase 4 complete
 
 Phase 4 (Request and Response Handling) is complete and all DoD criteria verified.

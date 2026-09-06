@@ -52,11 +52,11 @@ flowchart TB
   middlewarePkg --> slog
 ```
 
-> **Phase 4 note:** `pkg/errors` is now implemented (Layer 1). `pkg/router` imports
-> it for typed HTTP errors from request parsing; `pkg/router` also now imports `log/slog`
-> for the `ResponseWriter` double-write warning. `pkg/middleware` does not yet import
-> `pkg/errors` (future phase). `pkg/di`, `pkg/observability`, `cmd/`, and `examples/`
-> remain stubs until their respective phases.
+> **Phase 5 note:** `pkg/middleware` now imports `pkg/errors` (Layer 3 → Layer 1) to
+> write the standard JSON error envelope from `Recovery`. `pkg/errors` now imports
+> `runtime/debug` for optional stack capture in debug mode. `pkg/middleware` also imports
+> `runtime/debug` for the panic goroutine stack. `pkg/di`, `pkg/observability`, `cmd/`,
+> and `examples/` remain stubs until their respective phases.
 
 ## Layer Rules
 
