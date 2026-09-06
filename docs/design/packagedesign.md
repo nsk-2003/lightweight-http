@@ -23,6 +23,13 @@ flowchart TB
   subgraph foundation [Layer 1 - Foundation]
     errorsPkg[pkg/errors]
   end
+  subgraph stdlib [Standard Library]
+    nethttp[net/http]
+    neturl[net/url]
+    ctx[context]
+    syncp[sync]
+    slog[log/slog]
+  end
 
   cmdMain --> routerPkg
   cmdMain --> middlewarePkg
@@ -36,7 +43,18 @@ flowchart TB
   observabilityPkg --> errorsPkg
   routerPkg --> errorsPkg
   diPkg --> errorsPkg
+  routerPkg --> nethttp
+  routerPkg --> neturl
+  routerPkg --> ctx
+  routerPkg --> syncp
+  middlewarePkg --> nethttp
+  middlewarePkg --> slog
 ```
+
+> **Phase 3 note:** `pkg/middleware` is implemented and depends on `net/http` and
+> `log/slog` from the standard library. It does not yet import `pkg/router` or
+> `pkg/errors` (those edges are future-phase). `pkg/errors` and all other
+> packages above layer 2 remain stubs until their respective phases are implemented.
 
 ## Layer Rules
 
