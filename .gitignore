@@ -1,0 +1,50 @@
+# Binaries and build output (the directory itself is tracked)
+build/*
+!build/.gitkeep
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace and tooling
+go.work
+go.work.sum
+vendor/
+
+# Coverage and profiling
+coverage.out
+coverage.html
+*.prof
+*.pprof
+cpu.out
+mem.out
+
+# Local environment overrides (machine-specific, see docs/devenv.md).
+# The generic environment.sh is tracked; keep machine-specific values out of it.
+environment.local.sh
+environment.local.bat
+environment.bat
+
+# Environment and secrets
+.env
+.env.*
+.envrc
+*.pem
+*.key
+
+# Editors and OS
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.code-workspace
+
+# Agent scratch space. Skills and memory are intentionally tracked;
+# only transient agent output is ignored.
+.agents/tmp/
