@@ -33,3 +33,5 @@ delete a source file.
 | `test/testdata/malformed.json` | Shared JSON fixture with intentionally malformed content used by request-parsing tests. |
 | `pkg/di/container.go` | DI container: registration, singleton/scoped lifecycle resolution, circular-dependency detection, request-scope disposal, and context integration (ADR-005, ADR-010). |
 | `pkg/di/container_test.go` | Black-box tests for the di package covering all Phase 6 behavioral requirements: registration, singletons, scopes, cycles, constructor errors, disposal ordering, and context helpers. |
+| `pkg/observability/observability.go` | RequestID, Logger, and Metrics middleware plus the in-process Recorder — the full Phase 7 observability stack exposed as composable middleware functions (ADR-011, ADR-012). |
+| `pkg/observability/observability_test.go` | Black-box tests for the observability package covering all Phase 7 requirements: request ID generation/adoption/validation, standard log fields, Authorization redaction, metrics counting/latency/status, route-pattern aggregation, panic resilience, and race-detector cleanliness. |

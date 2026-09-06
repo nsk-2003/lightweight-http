@@ -17,6 +17,7 @@ type trieNode struct {
 	paramKid   *trieNode                   // single wildcard child, if any
 	paramName  string                      // name of wildcard (without ':')
 	handlers   map[string]http.HandlerFunc // HTTP method → handler
+	pattern    string                      // full route pattern, e.g. "/users/:id"
 }
 
 func newNode() *trieNode {
@@ -35,9 +36,15 @@ func (n *trieNode) add(method string, segments []string, h http.HandlerFunc) err
 
 func (n *trieNode) addAt(method string, segs []string, idx int, seen map[string]struct{}, h http.HandlerFunc) error {
 	if idx == len(segs) {
+		pat := "/"
+		if len(segs) > 0 {
+			pat = "/" + strings.Join(segs, "/")
+		}
 		if _, dup := n.handlers[method]; dup {
-			pattern := "/" + strings.Join(segs, "/")
-			return fmt.Errorf("router: %s %s already registered", method, pattern)
+			return fmt.Errorf("router: %s %s already registered", method, pat)
+		}
+		if n.pattern == "" {
+			n.pattern = pat
 		}
 		n.handlers[method] = h
 		return nil
@@ -77,8 +84,9 @@ func (n *trieNode) addAt(method string, segs []string, idx int, seen map[string]
 
 // matchResult carries a successful trie match.
 type matchResult struct {
-	node   *trieNode
-	params map[string]string
+	node    *trieNode
+	params  map[string]string
+	pattern string // matched route pattern, e.g. "/users/:id"
 }
 
 // match walks the trie for the given request segments.
@@ -91,7 +99,7 @@ func (n *trieNode) match(segs []string, idx int, params map[string]string) *matc
 		if len(n.handlers) == 0 {
 			return nil
 		}
-		return &matchResult{node: n, params: params}
+		return &matchResult{node: n, params: params, pattern: n.pattern}
 	}
 
 	raw := segs[idx]

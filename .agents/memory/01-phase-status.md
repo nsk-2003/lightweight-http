@@ -1,3 +1,17 @@
+## 2026-09-07 — Phase 7 complete
+
+Phase 7 (Observability) is complete and all DoD criteria verified.
+Key decisions:
+- `pkg/observability` at layer 3. Imports `pkg/errors` (request-ID helpers) and `pkg/router` (RoutePatternHolder). Layer 3 → Layer 2 is allowed. Package diagram updated.
+- `RoutePatternHolder`: mutable `*struct{Pattern string}` installed in context by Logger (or Metrics standalone). Router calls `setRoutePattern(ctx, pattern)` which mutates it through the context chain. Both Logger and Metrics read the final value after `ServeHTTP` returns — no extra context write needed.
+- `trieNode.pattern` field: set once at registration to the canonical pattern string (e.g. `/users/:id`). `matchResult` carries it; 404/405 paths leave the holder at `""`.
+- `RequestID` middleware: validates incoming X-Request-ID (non-empty, ≤128 bytes, 0x21–0x7E only). Generates 32-char hex (16 bytes crypto/rand). Stores via `pkg/errors.WithRequestID`; echoes on `X-Request-ID` response header.
+- `Logger` middleware: installs RoutePatternHolder, wraps ResponseWriter via `router.WrapResponseWriter`, logs after downstream returns. Standard fields: request_id, method, route, path, status, duration_ms, bytes, remote_addr. Authorization/Cookie never logged (structural: no code path reads headers).
+- `Recorder` (Metrics): `sync.Mutex`-guarded `map[MetricKey]*routeEntry`. Thin `metricsRW` wrapper captures first status code. `Snapshot()` returns deep copy. Metrics wraps Recovery to see the 500 written by Recovery on panic.
+- Recommended ordering: RequestID → Logger → Metrics → Recovery → Handler. Documented in test plan and observability.go godoc.
+- Zero-value `Recorder` is ready to use (no constructor required).
+Pointers: `pkg/observability/{observability,observability_test}.go`, `pkg/router/{context,trie,router}.go`, `test/plans/phase7.md`.
+
 ## 2026-09-07 — Phase 6 complete
 
 Phase 6 (Dependency Management) is complete and all DoD criteria verified.

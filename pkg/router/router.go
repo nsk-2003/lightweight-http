@@ -81,6 +81,9 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	switch {
 	case handler != nil:
 		ctx := req.Context()
+		// Write the matched pattern into any RoutePatternHolder installed by
+		// observability middleware so metrics and logging can key by pattern.
+		setRoutePattern(ctx, result.pattern)
 		if len(result.params) > 0 {
 			ctx = withParams(ctx, result.params)
 		}

@@ -41,6 +41,7 @@ flowchart TB
   middlewarePkg --> routerPkg
   middlewarePkg --> errorsPkg
   observabilityPkg --> errorsPkg
+  observabilityPkg --> routerPkg
   routerPkg --> errorsPkg
   diPkg --> ctx
   diPkg --> syncp
@@ -59,8 +60,13 @@ flowchart TB
 >
 > **Phase 6 note:** `pkg/di` is now implemented. It imports only standard library packages
 > (`context`, `sync`, `log/slog`, `fmt`, `strings`); it does NOT import `pkg/errors`
-> because its own error types are DI-specific (not HTTP errors). `pkg/observability`,
-> `cmd/`, and `examples/` remain stubs until their respective phases.
+> because its own error types are DI-specific (not HTTP errors).
+>
+> **Phase 7 note:** `pkg/observability` is now implemented. It imports `pkg/errors` (Layer 1)
+> for request-ID context helpers and `pkg/router` (Layer 2) for `RoutePatternHolder` — a
+> mutable pointer the router writes the matched pattern into, enabling metrics keyed by route
+> pattern rather than concrete path (ADR-012). Layer 3 → Layer 2 is an allowed dependency.
+> `cmd/` and `examples/` remain stubs until Phase 8.
 
 ## Layer Rules
 
