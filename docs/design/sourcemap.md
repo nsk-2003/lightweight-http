@@ -30,7 +30,11 @@ delete a source file.
 | `pkg/middleware/middleware_test.go` | Tests for chain execution order, short-circuiting, context propagation, panic recovery, and concurrency safety. |
 | `pkg/router/router_use_test.go` | Integration tests for Router.Use and Group.Use verifying global and group chain composition order. |
 | `test/plans/phase3.md` | Test plan for Phase 3: middleware chain, recovery, and router integration. |
-| `pkg/di/doc.go` | Package declaration stub for the dependency injection package (Phase 1 placeholder). |
+| `pkg/di/doc.go` | Package declaration and doc comment for the dependency injection package. |
+| `pkg/di/container.go` | DI container: singleton/scoped lifecycles, circular-dependency detection, and context attachment for request scopes (ADR-005, ADR-010). |
+| `pkg/di/container_test.go` | Tests for every behavioral requirement in the DI container spec: all lifecycle rows, cycle detection, concurrent singleton, disposal order, and context attachment. |
+| `test/unit/di_layering_test.go` | Black-box test asserting that pkg/di is not imported by pkg/errors, pkg/router, or pkg/middleware (layering rule). |
+| `test/plans/phase6.md` | Test plan for Phase 6: DI container behavioral coverage and layering verification. |
 | `pkg/observability/doc.go` | Package declaration stub for the observability package (Phase 1 placeholder). |
 | `pkg/errors/errors.go` | HTTPError type, sentinel errors, constructor functions, and request-ID context helpers (ADR-006). |
 | `pkg/errors/errors_test.go` | Tests for HTTPError construction, sentinels, Unwrap, errors.Is/As, and request-ID context helpers. |

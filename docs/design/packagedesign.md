@@ -41,7 +41,7 @@ flowchart TB
   diPkg --> errorsPkg
 ```
 
-### Phase 5 — Real Import Graph
+### Phase 6 — Real Import Graph
 
 `pkg/errors` imports only the Go standard library: `context`, `encoding/json`, `errors`,
 `fmt`, `log/slog`, `net/http`, `runtime/debug`.
@@ -52,6 +52,9 @@ content-negotiation errors, and 404/405 envelope responses).
 
 `pkg/middleware` imports the Go standard library (`fmt`, `log/slog`, `net/http`) **and**
 `pkg/errors` (added in Phase 5 so Recovery produces the standard error envelope).
+
+`pkg/di` imports only the Go standard library: `context`, `errors`, `fmt`, `reflect`,
+`strings`, `sync`. It is not imported by `pkg/errors`, `pkg/router`, or `pkg/middleware`.
 
 ## Layer Rules
 
