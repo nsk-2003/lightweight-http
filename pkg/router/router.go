@@ -55,7 +55,7 @@ func (ro *Router) handle(method, pattern string, h http.HandlerFunc) error {
 
 	ro.mu.Lock()
 	defer ro.mu.Unlock()
-	return ro.root.register(method, segments, paramsSeen, h)
+	return ro.root.register(method, segments, paramsSeen, h, pattern)
 }
 
 // GET registers a handler for GET requests matching the given pattern.
@@ -120,13 +120,15 @@ func (ro *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx := withRoutePattern(r.Context(), result.pattern)
 	if len(result.captured) > 0 {
 		params := make(map[string]string, len(result.captured))
 		for i, name := range result.paramNames {
 			params[name] = result.captured[i]
 		}
-		r = r.WithContext(withParams(r.Context(), params))
+		ctx = withParams(ctx, params)
 	}
+	r = r.WithContext(ctx)
 
 	if len(chain) == 0 {
 		h(w, r)

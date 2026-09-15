@@ -35,7 +35,15 @@ delete a source file.
 | `pkg/di/container_test.go` | Tests for every behavioral requirement in the DI container spec: all lifecycle rows, cycle detection, concurrent singleton, disposal order, and context attachment. |
 | `test/unit/di_layering_test.go` | Black-box test asserting that pkg/di is not imported by pkg/errors, pkg/router, or pkg/middleware (layering rule). |
 | `test/plans/phase6.md` | Test plan for Phase 6: DI container behavioral coverage and layering verification. |
-| `pkg/observability/doc.go` | Package declaration stub for the observability package (Phase 1 placeholder). |
+| `pkg/observability/doc.go` | Package declaration and middleware-ordering guidance for the observability package. |
+| `pkg/observability/recorder.go` | statusRecorder wraps http.ResponseWriter to capture response status code and byte count. |
+| `pkg/observability/requestid.go` | RequestID middleware: adopts or generates a per-request ID, validates it, and echoes it on the response. |
+| `pkg/observability/requestid_test.go` | Tests for request ID generation, adoption, validation, and echo behavior. |
+| `pkg/observability/metrics.go` | InProcessCollector and MetricsMiddleware: in-memory request count, latency, and status-code metrics keyed by route pattern (ADR-012). |
+| `pkg/observability/metrics_test.go` | Tests for metrics accuracy, pattern aggregation, status separation, concurrency, and panic-handler coverage. |
+| `pkg/observability/logging.go` | LoggingMiddleware: structured per-request log with standard field set and sensitive-header redaction (ADR-011). |
+| `pkg/observability/logging_test.go` | Tests for log field set, Authorization/Cookie redaction, error field propagation, and route pattern logging. |
+| `test/plans/phase7.md` | Test plan for Phase 7: observability middleware coverage and acceptance criteria. |
 | `pkg/errors/errors.go` | HTTPError type, sentinel errors, constructor functions, and request-ID context helpers (ADR-006). |
 | `pkg/errors/errors_test.go` | Tests for HTTPError construction, sentinels, Unwrap, errors.Is/As, and request-ID context helpers. |
 | `pkg/errors/handler.go` | Central error handler that converts any error to the standard JSON envelope (ADR-006, ADR-008). |

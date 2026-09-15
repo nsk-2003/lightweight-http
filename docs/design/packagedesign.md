@@ -34,14 +34,15 @@ flowchart TB
   examplesPkg --> routerPkg
   examplesPkg --> middlewarePkg
   examplesPkg --> diPkg
-  middlewarePkg -.->|planned Phase 7+| routerPkg
   middlewarePkg -->|Phase 5| errorsPkg
   observabilityPkg --> errorsPkg
+  observabilityPkg --> routerPkg
+  observabilityPkg --> middlewarePkg
   routerPkg -->|Phase 4| errorsPkg
   diPkg --> errorsPkg
 ```
 
-### Phase 6 — Real Import Graph
+### Phase 7 — Real Import Graph
 
 `pkg/errors` imports only the Go standard library: `context`, `encoding/json`, `errors`,
 `fmt`, `log/slog`, `net/http`, `runtime/debug`.
@@ -55,6 +56,10 @@ content-negotiation errors, and 404/405 envelope responses).
 
 `pkg/di` imports only the Go standard library: `context`, `errors`, `fmt`, `reflect`,
 `strings`, `sync`. It is not imported by `pkg/errors`, `pkg/router`, or `pkg/middleware`.
+
+`pkg/observability` imports the Go standard library (`context`, `crypto/rand`, `encoding/hex`,
+`log/slog`, `net/http`, `sync`, `time`) **and** `pkg/errors` (for RequestIDFromContext and
+WithRequestID), `pkg/router` (for RoutePattern), and `pkg/middleware` (for the Middleware type).
 
 ## Layer Rules
 

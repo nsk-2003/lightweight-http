@@ -410,6 +410,37 @@ func TestRootPattern(t *testing.T) {
 	}
 }
 
+// TestRoutePattern verifies that RoutePattern returns the matched route pattern from context.
+func TestRoutePattern(t *testing.T) {
+	tests := []struct {
+		name        string
+		pattern     string
+		requestPath string
+		wantPattern string
+	}{
+		{"static", "/health", "/health", "/health"},
+		{"with param", "/users/:id", "/users/42", "/users/:id"},
+		{"root", "/", "/", "/"},
+		{"multi param", "/a/:x/b/:y", "/a/1/b/2", "/a/:x/b/:y"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ro := New()
+			var got string
+			if err := ro.GET(tc.pattern, func(w http.ResponseWriter, r *http.Request) {
+				got = RoutePattern(r)
+				w.WriteHeader(http.StatusOK)
+			}); err != nil {
+				t.Fatal(err)
+			}
+			ro.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, tc.requestPath, nil))
+			if got != tc.wantPattern {
+				t.Errorf("RoutePattern = %q, want %q", got, tc.wantPattern)
+			}
+		})
+	}
+}
+
 // BenchmarkRouterMatch benchmarks route matching against a table of several dozen routes.
 func BenchmarkRouterMatch(b *testing.B) {
 	ro := New()

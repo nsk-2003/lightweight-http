@@ -1,4 +1,4 @@
-// Purpose: Defines the unexported context key type and exported accessor functions for path and query parameters (ADR-005).
+// Purpose: Defines the unexported context key types and exported accessor functions for path parameters, query parameters, and the matched route pattern (ADR-005).
 
 package router
 
@@ -35,4 +35,20 @@ func PathParam(r *http.Request, name string) string {
 // Returns an empty string if the parameter is absent.
 func QueryParam(r *http.Request, name string) string {
 	return r.URL.Query().Get(name)
+}
+
+// routePatternKey is an unexported context key type used to store the matched route pattern (ADR-005).
+type routePatternKey struct{}
+
+// withRoutePattern returns a new context carrying the matched route pattern string.
+func withRoutePattern(ctx context.Context, pattern string) context.Context {
+	return context.WithValue(ctx, routePatternKey{}, pattern)
+}
+
+// RoutePattern returns the matched route pattern (e.g. "/users/:id") from the request context.
+// Returns an empty string if the request was not dispatched through the router or the pattern
+// was not set.
+func RoutePattern(r *http.Request) string {
+	v, _ := r.Context().Value(routePatternKey{}).(string)
+	return v
 }
