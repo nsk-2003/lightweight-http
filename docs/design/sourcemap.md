@@ -16,4 +16,10 @@ delete a source file.
 
 | Source File | Purpose |
 |---|---|
-| _(empty — populated as the implementation is generated)_ | |
+| `go.mod` | Go module declaration; defines module path and minimum Go version. |
+| `environment.sh` | Loads development environment variables; source before running any Go command. |
+| `pkg/errors/doc.go` | Package declaration stub for the errors foundation package (Phase 1 placeholder). |
+| `pkg/router/doc.go` | Package declaration stub for the router core package (Phase 1 placeholder). |
+| `pkg/middleware/doc.go` | Package declaration stub for the middleware composition package (Phase 1 placeholder). |
+| `pkg/di/doc.go` | Package declaration stub for the dependency injection package (Phase 1 placeholder). |
+| `pkg/observability/doc.go` | Package declaration stub for the observability package (Phase 1 placeholder). |
