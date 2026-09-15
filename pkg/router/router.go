@@ -12,13 +12,24 @@ import (
 // Router matches incoming HTTP requests to registered handlers by method and path.
 // Use New to create a Router. The zero value is not usable.
 type Router struct {
-	root *trieNode
-	mu   sync.RWMutex
+	root  *trieNode
+	mu    sync.RWMutex
+	chain []func(http.Handler) http.Handler
 }
 
 // New returns a ready-to-use Router.
 func New() *Router {
 	return &Router{root: newTrieNode()}
+}
+
+// Use appends one or more middleware functions to the router's global chain.
+// Middleware is applied to every request in registration order: the first Use call
+// registers the outermost wrapper (ADR-009). Use is not safe to call concurrently
+// with ServeHTTP; register all middleware before the server begins accepting requests.
+func (ro *Router) Use(mws ...func(http.Handler) http.Handler) {
+	ro.mu.Lock()
+	defer ro.mu.Unlock()
+	ro.chain = append(ro.chain, mws...)
 }
 
 // handle registers h for the given HTTP method and path pattern. It is the single
@@ -90,6 +101,8 @@ func (ro *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ro.mu.RLock()
 	result := ro.root.match(segments, nil, nil)
+	chain := make([]func(http.Handler) http.Handler, len(ro.chain))
+	copy(chain, ro.chain)
 	ro.mu.RUnlock()
 
 	if result == nil {
@@ -113,7 +126,15 @@ func (ro *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(withParams(r.Context(), params))
 	}
 
-	h(w, r)
+	if len(chain) == 0 {
+		h(w, r)
+		return
+	}
+	var handler http.Handler = h
+	for i := len(chain) - 1; i >= 0; i-- {
+		handler = chain[i](handler)
+	}
+	handler.ServeHTTP(w, r)
 }
 
 // splitPattern splits a pattern string into its path segments, stripping the leading slash.
@@ -137,16 +158,33 @@ func splitPath(path string) []string {
 	return strings.Split(trimmed, "/")
 }
 
-// Group is a set of routes that share a common URL prefix.
+// Group is a set of routes that share a common URL prefix and an optional middleware chain.
 // Create one with Router.Group or Group.Group.
 type Group struct {
 	prefix string
 	router *Router
+	chain  []func(http.Handler) http.Handler
+}
+
+// Use appends middleware to this group's chain. Middleware registered here wraps only
+// handlers registered through this group and its descendants (ADR-009).
+// Middleware must be registered before route handlers; not safe to call after serving starts.
+func (g *Group) Use(mws ...func(http.Handler) http.Handler) {
+	g.chain = append(g.chain, mws...)
 }
 
 // handle registers a handler on the parent Router with the group's prefix prepended.
+// The handler is wrapped with the group's middleware chain before registration so that
+// group-level middleware executes after the router's global chain (ADR-009).
 func (g *Group) handle(method, pattern string, h http.HandlerFunc) error {
-	return g.router.handle(method, g.prefix+pattern, h)
+	if len(g.chain) == 0 {
+		return g.router.handle(method, g.prefix+pattern, h)
+	}
+	var wrapped http.Handler = h
+	for i := len(g.chain) - 1; i >= 0; i-- {
+		wrapped = g.chain[i](wrapped)
+	}
+	return g.router.handle(method, g.prefix+pattern, wrapped.ServeHTTP)
 }
 
 // GET registers a handler for GET requests under the group's prefix.
@@ -175,6 +213,10 @@ func (g *Group) PATCH(pattern string, h http.HandlerFunc) error {
 }
 
 // Group returns a new Group whose prefix is this group's prefix concatenated with prefix.
+// The new group inherits a copy of this group's middleware chain; additional middleware
+// added to the child via Use does not affect the parent.
 func (g *Group) Group(prefix string) *Group {
-	return &Group{prefix: g.prefix + prefix, router: g.router}
+	inherited := make([]func(http.Handler) http.Handler, len(g.chain))
+	copy(inherited, g.chain)
+	return &Group{prefix: g.prefix + prefix, router: g.router, chain: inherited}
 }

@@ -24,6 +24,11 @@ delete a source file.
 | `pkg/router/trie.go` | Segment trie implementation: O(segments) path matching without backtracking (ADR-004). |
 | `pkg/router/params.go` | Unexported context key and accessor functions for path and query parameters (ADR-005). |
 | `pkg/router/router_test.go` | Table-driven tests and benchmark for routing dispatch, path params, query access, and groups. |
-| `pkg/middleware/doc.go` | Package declaration stub for the middleware composition package (Phase 1 placeholder). |
+| `pkg/middleware/doc.go` | Package declaration for the middleware composition package. |
+| `pkg/middleware/middleware.go` | Middleware function type and Chain composition abstraction; applies middleware in registration order (ADR-009). |
+| `pkg/middleware/recovery.go` | Recovery middleware that converts handler panics into 500 responses and re-panics on http.ErrAbortHandler (ADR-007). |
+| `pkg/middleware/middleware_test.go` | Tests for chain execution order, short-circuiting, context propagation, panic recovery, and concurrency safety. |
+| `pkg/router/router_use_test.go` | Integration tests for Router.Use and Group.Use verifying global and group chain composition order. |
+| `test/plans/phase3.md` | Test plan for Phase 3: middleware chain, recovery, and router integration. |
 | `pkg/di/doc.go` | Package declaration stub for the dependency injection package (Phase 1 placeholder). |
 | `pkg/observability/doc.go` | Package declaration stub for the observability package (Phase 1 placeholder). |
