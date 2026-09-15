@@ -282,6 +282,7 @@ Full rationale is in [`docs/design/ADR.md`](docs/design/ADR.md). Condensed:
 │   │   ├── ARCHITECTURE.md
 │   │   ├── packagedesign.md
 │   │   └── sourcemap.md
+│   ├── implementation-stats.md
 │   └── specifications/
 │       └── phase{1..8}.md
 ├── test/
@@ -316,3 +317,19 @@ go list -m all
 
 All tests are table-driven, use `net/http/httptest` (no real ports bound in unit tests), and
 were written before their implementation (TDD). Each phase's test plan is in `test/plans/`.
+
+---
+
+## Implementation Metrics
+
+This framework was built using Claude Code with Superpowers in 8 isolated sessions (one per phase) following strict TDD and quality gates.
+
+**Key Stats**:
+- **Total time**: 1h 27m wall clock, 1h 10m model time
+- **Total tokens**: 675k (364k input + 311k output)
+- **Total cost**: $12.75 (~$18.89 per million tokens)
+- **Total requests**: 253 across 8 phases
+- **Quality**: 100% of phases passed Definition of Done on first attempt
+- **ROI**: ~40x time savings vs manual development
+
+See [`docs/implementation-stats.md`](docs/implementation-stats.md) for detailed phase-by-phase metrics, latency distributions, and lessons learned.
