@@ -6,6 +6,9 @@ real import graph.
 
 ## Target Module Dependency Diagram
 
+The diagram shows the full target architecture. Edges in **bold** are implemented; remaining
+edges are planned for later phases. Updated after each phase to match the real import graph.
+
 ```mermaid
 flowchart TB
   subgraph app [Layer 4 - Application]
@@ -34,9 +37,14 @@ flowchart TB
   middlewarePkg --> routerPkg
   middlewarePkg --> errorsPkg
   observabilityPkg --> errorsPkg
-  routerPkg --> errorsPkg
+  routerPkg -.->|planned Phase 5| errorsPkg
   diPkg --> errorsPkg
 ```
+
+### Phase 2 — Real Import Graph (pkg/router)
+
+`pkg/router` is implemented and imports only the Go standard library:
+`context`, `fmt`, `net/http`, `strings`, `sync`. No intra-module edges yet.
 
 ## Layer Rules
 
