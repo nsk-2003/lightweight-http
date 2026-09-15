@@ -32,3 +32,13 @@ delete a source file.
 | `test/plans/phase3.md` | Test plan for Phase 3: middleware chain, recovery, and router integration. |
 | `pkg/di/doc.go` | Package declaration stub for the dependency injection package (Phase 1 placeholder). |
 | `pkg/observability/doc.go` | Package declaration stub for the observability package (Phase 1 placeholder). |
+| `pkg/errors/errors.go` | HTTPError type and constructor functions for framework errors with HTTP status codes (ADR-006). |
+| `pkg/errors/errors_test.go` | Tests for HTTPError creation, status codes, and the error string format. |
+| `pkg/router/request.go` | Typed request parsing for JSON bodies, form data, and query parameters with size and content-type enforcement. |
+| `pkg/router/request_test.go` | Tests for ParseJSON, ParseForm, RequireQuery, and QueryInt covering every behavioral requirement row. |
+| `pkg/router/response.go` | ResponseWriter with status/byte tracking and content-negotiated write helpers (WriteJSON, WriteText, Respond, NoContent). |
+| `pkg/router/response_test.go` | Tests for the ResponseWriter wrapper and the Respond/WriteJSON/WriteText/NoContent helpers. |
+| `test/plans/phase4.md` | Test plan for Phase 4: request parsing and response writing behavioral coverage. |
+| `test/testdata/valid.json` | Valid JSON fixture used by ParseJSON success tests. |
+| `test/testdata/malformed.json` | Syntactically invalid JSON fixture used by malformed-body tests. |
+| `test/testdata/unknown_field.json` | JSON fixture with an extra field used by strict-mode unknown-field tests. |

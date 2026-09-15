@@ -37,13 +37,17 @@ flowchart TB
   middlewarePkg -.->|planned Phase 7+| routerPkg
   middlewarePkg -.->|planned Phase 5| errorsPkg
   observabilityPkg --> errorsPkg
-  routerPkg -.->|planned Phase 5| errorsPkg
+  routerPkg -->|Phase 4| errorsPkg
   diPkg --> errorsPkg
 ```
 
-### Phase 3 — Real Import Graph
+### Phase 4 — Real Import Graph
 
-`pkg/router` imports only the Go standard library: `context`, `fmt`, `net/http`, `strings`, `sync`.
+`pkg/errors` imports only the Go standard library: `fmt`.
+
+`pkg/router` imports the Go standard library (`context`, `encoding/json`, `errors`, `fmt`,
+`net/http`, `strconv`, `strings`, `sync`) **and** `pkg/errors` (added in Phase 4 to type
+request-parsing and content-negotiation errors).
 
 `pkg/middleware` imports only the Go standard library: `fmt`, `log/slog`, `net/http`.
 No intra-module edges: the middleware package does not import pkg/router or pkg/errors yet.
