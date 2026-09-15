@@ -227,8 +227,8 @@ func TestRespondUnsupportedAccept(t *testing.T) {
 	if !ok {
 		t.Fatalf("error type = %T, want *httperr.HTTPError", err)
 	}
-	if he.Code != http.StatusNotAcceptable {
-		t.Errorf("status = %d, want 406", he.Code)
+	if he.Status != http.StatusNotAcceptable {
+		t.Errorf("status = %d, want 406", he.Status)
 	}
 	// Verify nothing was written to the response.
 	if rec.Code != http.StatusOK { // httptest default

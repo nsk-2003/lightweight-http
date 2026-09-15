@@ -23,7 +23,7 @@ type person struct {
 // statusOf returns the HTTPError status code from err, or 0 if err is not an *HTTPError.
 func statusOf(err error) int {
 	if e, ok := err.(*httperr.HTTPError); ok {
-		return e.Code
+		return e.Status
 	}
 	return 0
 }

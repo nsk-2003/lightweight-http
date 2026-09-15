@@ -32,8 +32,10 @@ delete a source file.
 | `test/plans/phase3.md` | Test plan for Phase 3: middleware chain, recovery, and router integration. |
 | `pkg/di/doc.go` | Package declaration stub for the dependency injection package (Phase 1 placeholder). |
 | `pkg/observability/doc.go` | Package declaration stub for the observability package (Phase 1 placeholder). |
-| `pkg/errors/errors.go` | HTTPError type and constructor functions for framework errors with HTTP status codes (ADR-006). |
-| `pkg/errors/errors_test.go` | Tests for HTTPError creation, status codes, and the error string format. |
+| `pkg/errors/errors.go` | HTTPError type, sentinel errors, constructor functions, and request-ID context helpers (ADR-006). |
+| `pkg/errors/errors_test.go` | Tests for HTTPError construction, sentinels, Unwrap, errors.Is/As, and request-ID context helpers. |
+| `pkg/errors/handler.go` | Central error handler that converts any error to the standard JSON envelope (ADR-006, ADR-008). |
+| `pkg/errors/handler_test.go` | Tests for Handle: envelope shape, production safety, debug logging, request ID, and leak prevention. |
 | `pkg/router/request.go` | Typed request parsing for JSON bodies, form data, and query parameters with size and content-type enforcement. |
 | `pkg/router/request_test.go` | Tests for ParseJSON, ParseForm, RequireQuery, and QueryInt covering every behavioral requirement row. |
 | `pkg/router/response.go` | ResponseWriter with status/byte tracking and content-negotiated write helpers (WriteJSON, WriteText, Respond, NoContent). |

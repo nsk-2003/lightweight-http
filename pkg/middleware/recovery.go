@@ -1,4 +1,4 @@
-// Purpose: Recovery middleware that converts handler panics into 500 responses (ADR-007).
+// Purpose: Recovery middleware that converts handler panics into framework error responses (ADR-007).
 // It is the only site in the codebase that calls recover().
 
 package middleware
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+
+	httperr "github.com/example/lightweight-http/pkg/errors"
 )
 
 // responseTracker wraps an http.ResponseWriter and tracks whether the response
@@ -29,12 +31,12 @@ func (rt *responseTracker) Write(b []byte) (int, error) {
 }
 
 // Recovery returns a Middleware that catches panics in the handler or downstream middleware
-// and converts them into a 500 Internal Server Error response.
+// and converts them into a 500 Internal Server Error using the framework error envelope (ADR-007).
 //
 // Special cases:
-//   - http.ErrAbortHandler is re-panicked so the server can clean up the connection (ADR-007).
-//   - If the handler has already begun writing the response, Recovery cannot overwrite the
-//     status code; it logs the incident and returns without writing a new body.
+//   - http.ErrAbortHandler is re-panicked so the server can clean up the connection.
+//   - If the handler has already begun writing the response, Recovery logs the incident
+//     and returns without writing a new body.
 //
 // If logger is nil, slog.Default() is used.
 func Recovery(logger *slog.Logger) Middleware {
@@ -65,7 +67,8 @@ func Recovery(logger *slog.Logger) Middleware {
 					)
 					return
 				}
-				http.Error(tracker, "Internal Server Error", http.StatusInternalServerError)
+				cause := fmt.Errorf("panic: %v", val)
+				httperr.Handle(tracker, r, httperr.Internal("an internal error occurred", cause), logger, false)
 			}()
 			next.ServeHTTP(tracker, r)
 		})

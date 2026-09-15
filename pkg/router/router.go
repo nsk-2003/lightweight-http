@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+
+	httperr "github.com/example/lightweight-http/pkg/errors"
 )
 
 // Router matches incoming HTTP requests to registered handlers by method and path.
@@ -106,7 +108,7 @@ func (ro *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ro.mu.RUnlock()
 
 	if result == nil {
-		http.Error(w, "404 page not found", http.StatusNotFound)
+		httperr.Handle(w, r, httperr.NotFound("not found"), nil, false)
 		return
 	}
 
@@ -114,7 +116,7 @@ func (ro *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		allowed := result.node.allowedMethods()
 		w.Header().Set("Allow", strings.Join(allowed, ", "))
-		http.Error(w, "405 method not allowed", http.StatusMethodNotAllowed)
+		httperr.Handle(w, r, httperr.New(http.StatusMethodNotAllowed, "method_not_allowed", "method not allowed"), nil, false)
 		return
 	}
 
