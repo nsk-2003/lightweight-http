@@ -6,14 +6,15 @@ real import graph.
 
 ## Target Module Dependency Diagram
 
-The diagram shows the full target architecture. Edges in **bold** are implemented; remaining
-edges are planned for later phases. Updated after each phase to match the real import graph.
+The diagram shows the full target architecture. Updated after Phase 8 to match the real import graph.
 
 ```mermaid
 flowchart TB
   subgraph app [Layer 4 - Application]
     cmdMain[cmd/server]
-    examplesPkg[examples]
+    itemsLib[examples/items]
+    itemsCmd[examples/items/cmd]
+    e2eTest[test/unit/e2e_test]
   end
   subgraph composition [Layer 3 - Composition]
     middlewarePkg[pkg/middleware]
@@ -27,39 +28,55 @@ flowchart TB
     errorsPkg[pkg/errors]
   end
 
+  cmdMain --> itemsLib
   cmdMain --> routerPkg
   cmdMain --> middlewarePkg
   cmdMain --> observabilityPkg
   cmdMain --> diPkg
-  examplesPkg --> routerPkg
-  examplesPkg --> middlewarePkg
-  examplesPkg --> diPkg
-  middlewarePkg -->|Phase 5| errorsPkg
+  itemsCmd --> itemsLib
+  itemsCmd --> routerPkg
+  itemsCmd --> middlewarePkg
+  itemsCmd --> observabilityPkg
+  itemsCmd --> diPkg
+  e2eTest --> itemsLib
+  e2eTest --> routerPkg
+  e2eTest --> middlewarePkg
+  e2eTest --> observabilityPkg
+  e2eTest --> diPkg
+  itemsLib --> routerPkg
+  itemsLib --> errorsPkg
+  itemsLib --> diPkg
+  itemsLib --> observabilityPkg
+  middlewarePkg --> errorsPkg
   observabilityPkg --> errorsPkg
   observabilityPkg --> routerPkg
   observabilityPkg --> middlewarePkg
-  routerPkg -->|Phase 4| errorsPkg
-  diPkg --> errorsPkg
+  routerPkg --> errorsPkg
 ```
 
-### Phase 7 — Real Import Graph
+### Phase 8 — Real Import Graph
 
 `pkg/errors` imports only the Go standard library: `context`, `encoding/json`, `errors`,
 `fmt`, `log/slog`, `net/http`, `runtime/debug`.
 
 `pkg/router` imports the Go standard library (`context`, `encoding/json`, `errors`, `fmt`,
-`net/http`, `strconv`, `strings`, `sync`) **and** `pkg/errors` (for request-parsing errors,
-content-negotiation errors, and 404/405 envelope responses).
+`net/http`, `strconv`, `strings`, `sync`) **and** `pkg/errors`.
 
 `pkg/middleware` imports the Go standard library (`fmt`, `log/slog`, `net/http`) **and**
-`pkg/errors` (added in Phase 5 so Recovery produces the standard error envelope).
+`pkg/errors`.
 
 `pkg/di` imports only the Go standard library: `context`, `errors`, `fmt`, `reflect`,
-`strings`, `sync`. It is not imported by `pkg/errors`, `pkg/router`, or `pkg/middleware`.
+`strings`, `sync`. It does not import any `pkg/` package and is not imported by
+`pkg/errors`, `pkg/router`, or `pkg/middleware`.
 
 `pkg/observability` imports the Go standard library (`context`, `crypto/rand`, `encoding/hex`,
-`log/slog`, `net/http`, `sync`, `time`) **and** `pkg/errors` (for RequestIDFromContext and
-WithRequestID), `pkg/router` (for RoutePattern), and `pkg/middleware` (for the Middleware type).
+`log/slog`, `net/http`, `sync`, `time`) **and** `pkg/errors`, `pkg/router`, `pkg/middleware`.
+
+`examples/items` (library package) imports `pkg/router`, `pkg/errors`, `pkg/di`,
+`pkg/observability`. It is not imported by any `pkg/` package.
+
+`cmd/server` and `examples/items/cmd` import `examples/items` and the four `pkg/` packages
+they need for wiring. Both are main packages at the composition root (Layer 4).
 
 ## Layer Rules
 

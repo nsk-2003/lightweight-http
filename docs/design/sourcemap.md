@@ -56,3 +56,9 @@ delete a source file.
 | `test/testdata/valid.json` | Valid JSON fixture used by ParseJSON success tests. |
 | `test/testdata/malformed.json` | Syntactically invalid JSON fixture used by malformed-body tests. |
 | `test/testdata/unknown_field.json` | JSON fixture with an extra field used by strict-mode unknown-field tests. |
+| `examples/items/store.go` | Item resource type and in-memory store for the items API example. |
+| `examples/items/handlers.go` | HTTP handlers and route registration (RegisterRoutes) for the items API example. |
+| `examples/items/cmd/main.go` | Entry point for the standalone items-server example; demonstrates full framework wiring. |
+| `cmd/server/main.go` | Production server entry point; reads env config, wires DI/middleware/routes, graceful shutdown. |
+| `test/unit/e2e_test.go` | End-to-end test that starts the server with httptest.NewServer and drives all /api/v1 routes. |
+| `test/plans/phase8.md` | Test plan for Phase 8: e2e route table coverage and acceptance criteria checklist. |
